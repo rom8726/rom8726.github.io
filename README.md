@@ -11,3 +11,9 @@ Minimalistic, reflection-based Dependency Injection (DI) framework for GoLang.
 Spec-first Golang project scaffold generator
 
 [Project's page](https://rom8726.github.io/airo.html)
+
+## pgfixtures
+
+PostgreSQL test fixtures library and CLI
+
+[Project's page](https://rom8726.github.io/pgfixtures.html)
