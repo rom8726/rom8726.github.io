@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>airo - Spec-first Golang project scaffold generator</title>
+    <style>
+        :root {
+            --primary-color: #00ADD8;
+            --text-color: #333;
+            --bg-color: #fff;
+            --code-bg: #f6f8fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1em;
+        }
+
+        h2 {
+            margin-top: 2em;
+            color: var(--primary-color);
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        pre code {
+            display: block;
+            padding: 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        img {
+            max-width: 350px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .example {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        strong {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>airo</h1>
+    <p>Spec-first Golang project scaffold generator</p>
+
+    <h2>Key features</h2>
+    <ul class="features">
+        <li><strong>OpenAPI first</strong> – start with a spec, everything else is generated around it.</li>
+        <li><strong>Code generation with <a href="https://github.com/ogen-go/ogen">ogen-go/ogen</a></strong> –
+            generation of request/response models & router.</li>
+        <li><strong>Dependency injection via <a href="https://github.com/rom8726/di">rom8726/di</a></strong> –
+            constructor-based DI.</li>
+        <li><strong>Batteries included</strong>
+            <ul>
+                <li>PostgreSQL integration</li>
+                <li>MySQL integration</li>
+                <li>MongoDB integration</li>
+                <li>Redis integration (optional)</li>
+                <li>Kafka integration (optional)</li>
+                <li>Health-check, Prometheus metrics, pprof endpoints</li>
+                <li>Structured logging with slog</li>
+            </ul>
+        </li>
+        <li><strong>Docker-ready</strong> – Dockerfile, docker-compose.yml, Makefile are scaffolded for you.</li>
+        <li><strong>Static analysis out of the box</strong> – .golangci.yml with commonly used linters.</li>
+        <li><strong>CLI powered by <a href="https://github.com/spf13/cobra">spf13/cobra</a></strong></li>
+        <li><strong>12-factor config</strong> – environment variables parsed with envconfig, .env supported.</li>
+    </ul>
+
+    <h2>Quick start</h2>
+    <div class="example">
+        <pre><code># Install the generator binary
+go install github.com/rom8726/airo/cmd/airo@latest
+
+# Run the TUI
+airo generate</code></pre>
+    </div>
+
+    <p>The wizard will ask:</p>
+    <ol>
+        <li>Project name (folder will be created in the current directory)</li>
+        <li>Go module path (e.g. github.com/acme/myservice)</li>
+        <li>Path to OpenAPI specification (YAML or JSON)</li>
+        <li>Database choice (<strong>PostgreSQL</strong> \ <strong>MySQL</strong> \ <strong>MongoDB</strong>)</li>
+        <li>Additional infrastructure (<strong>Redis</strong> \ <strong>Kafka</strong>)</li>
+    </ol>
+
+    <h3>Screenshots:</h3>
+    <div>
+        <img src="./docs/wizard1.png" alt="Enter project name" />
+        <img src="./docs/wizard2.png" alt="Enter module name" />
+        <img src="./docs/wizard3.png" alt="Enter OpenAPI specification file path" />
+        <img src="./docs/wizard4.png" alt="Choose database type" />
+        <img src="./docs/wizard5.png" alt="Choose additional infrastructure" />
+        <img src="./docs/wizard6.png" alt="Confirmation" />
+    </div>
+
+    <p>After confirmation, the scaffold is generated.<br>
+        Infrastructure-specific sections (PostgreSQL container, Redis container, volumes, healthchecks, etc.) are
+        automatically injected into docker-compose.yml.</p>
+
+    <h2>Minimal OpenAPI example</h2>
+    <p>If you don't have a spec yet, start with the included template example/server.yml or something like this:</p>
+    <div class="example">
+        <pre><code>openapi: 3.1.0
+info:
+  title: Example API
+  version: 1.0.0
+paths:
+  /ping:
+    get:
+      summary: Ping-pong endpoint
+      operationId: ping
+      responses:
+        '200':
+          description: pong
+          content:
+            text/plain:
+              schema:
+                type: string</code></pre>
+    </div>
+
+    <h2>Generated layout</h2>
+    <div class="example">
+        <pre><code>myservice/
+├── cmd/
+│   └── server/             # server command
+├── internal/
+│   ├── api/
+│   │   └── rest/           # your handlers (interfaces generated by ogen)
+│   ├── generated/          # ogen output (do not edit)
+│   ├── config/             # env-config structs & helpers
+│   └── app.go              # app, db, redis, etc.
+├── pkg/                    # reusable packages
+├── dev/
+│   ├── docker-compose.yml  # app + selected infra (PostgreSQL, Redis…)
+│   ├── compose.env.example # config file example for docker compose environment
+│   ├── config.env.example  # config file example for local environment
+│   └── dev.mk              # Makefile commands for operate docker compose
+├── main.go
+├── .golangci.yml           # linter configuration
+├── Dockerfile              # multi-stage build (scratch runtime)
+├── Makefile                # common targets: build, run, test, lint, etc.
+└── go.mod</code></pre>
+    </div>
+
+    <h2>Running the generated service</h2>
+
+    <h3>1. With Go directly</h3>
+    <p>Create/adjust .env (or pass variables directly):</p>
+    <div class="example">
+        <pre><code>API_SERVER_ADDR=:8080
+TECH_SERVER_ADDR=:9090
+
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=secret
+POSTGRES_HOST=localhost:5432
+POSTGRES_DATABASE=mydb
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0</code></pre>
+    </div>
+
+    <div class="example">
+        <pre><code>cd myservice
+go run ./cmd/server --env-file=.env</code></pre>
+    </div>
+
+    <h3>2. Using Make & Docker</h3>
+    <p>Most repetitive commands are wrapped into make targets:</p>
+    <div class="example">
+        <pre><code># Build the binary for your host
+make build
+
+# Run unit tests & linters
+make test          # go test ./...
+make lint          # golangci-lint run
+
+# Build container image and start entire stack
+make dev-up    # equivalent to: docker compose up</code></pre>
+    </div>
+
+    <p>make dev-up relies on the generated docker-compose.yml.<br>
+        Only the services you selected in the wizard will be present (e.g. if you skipped Redis, the file will contain
+        only the app + PostgreSQL).</p>
+
+    <p>Stop and clean resources:</p>
+    <div class="example">
+        <pre><code>make dev-down  # docker compose down</code></pre>
+    </div>
+
+    <h2>Available endpoints</h2>
+    <ul>
+        <li>GET :8080/ping – from your OpenAPI spec</li>
+        <li>GET :8081/health – liveness probe</li>
+        <li>GET :8081/metrics – Prometheus metrics</li>
+        <li>GET :8081/debug/pprof/* – pprof profiles</li>
+    </ul>
+
+    <footer style="margin-top: 50px; text-align: center; color: #666;">
+        <p>Apache-2.0 License</p>
+    </footer>
+</body>
+
+</html>
