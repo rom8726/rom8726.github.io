@@ -18,12 +18,17 @@ PostgreSQL test fixtures library and CLI
 
 [Project's page](https://rom8726.github.io/pgfixtures.html)
 
+## ldap-mock
+
+Testing tool for Go projects that allows you to mock LDAP server interactions (e.g., Active Directory).
+
+[Project's page](https://rom8726.github.io/ldap_mock.html)
+
 ## ansible-patroni
 
 Ansible playbook for deploying PostgreSQL Patroni cluster
 
 [Project's page](https://rom8726.github.io/ansible-patroni.html)
-
 
 ## pg_iban
 

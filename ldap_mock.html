@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ldap-mock - LDAP Server Mock for Go Testing</title>
+    <style>
+        :root {
+            --primary-color: #00ADD8;
+            --text-color: #333;
+            --bg-color: #fff;
+            --code-bg: #f6f8fa;
+            --border-color: #e1e4e8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: var(--primary-color);
+            margin-top: 1.5em;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        pre code {
+            display: block;
+            padding: 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 16px;
+        }
+
+        .env-vars {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+
+        .env-vars dt {
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: var(--primary-color);
+            margin-top: 10px;
+        }
+
+        .env-vars dd {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .http-endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .divider {
+            border-top: 1px solid var(--border-color);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ldap-mock</h1>
+
+    <p>Github: <a href="https://github.com/rom8726/ldap-mock">github.com/rom8726/ldap-mock</a></p>
+    <p><code>ldap-mock</code> is a testing tool for Go projects that allows you to mock LDAP server interactions (e.g.,
+        Active Directory).
+        It enables you to create and manage LDAP request mocks efficiently through a simple HTTP API, making development
+        and testing more straightforward.
+        Code uses <a href="github.com/bradleypeabody/godap">github.com/bradleypeabody/godap</a>.</p>
+
+    <h2>Features</h2>
+    <ul class="feature-list">
+        <li>Run an LDAP mock server on a specified port (default: <code>389</code>).</li>
+        <li>Manage mocks (creation and cleanup) via HTTP API.</li>
+        <li>Supports YAML format for loading mocks.</li>
+        <li>Easily integratable into your tests.</li>
+    </ul>
+
+    <h2>Getting Started</h2>
+
+    <h3>Run with Docker</h3>
+    <p>You can use Docker to deploy <code>ldap-mock</code>:</p>
+
+    <div class="code-block">
+        <pre><code>docker run -p 389:389 -p 6006:6006 -e LDAP_USERNAME=admin -e LDAP_PASSWORD=admin123 rom8726/ldap-mock:latest</code></pre>
+    </div>
+
+    <div class="env-vars">
+        <h4>Environment variables:</h4>
+        <dl>
+            <dt>LDAP_PORT</dt>
+            <dd>Port for the LDAP server (default: <code>389</code>)</dd>
+
+            <dt>MOCK_PORT</dt>
+            <dd>Port for the mock HTTP server (default: <code>6006</code>)</dd>
+
+            <dt>LDAP_USERNAME</dt>
+            <dd>Username for binding to the LDAP server</dd>
+
+            <dt>LDAP_PASSWORD</dt>
+            <dd>Password for binding to the LDAP server</dd>
+        </dl>
+    </div>
+
+    <h3>HTTP API</h3>
+    <p><code>ldap-mock</code> provides an HTTP API (on port <code>6006</code>) for managing mocks:</p>
+
+    <h4>Load Mocks</h4>
+    <p>To load user mocks, send the following request:</p>
+
+    <div class="http-endpoint">
+        <pre><code>curl -X POST http://localhost:6006/mock \
+     -H "Content-Type: application/x-yaml" \
+     -d '
+users:
+  - cn: CN=John.Doe,OU=Users,DC=example,DC=com
+    attrs:
+      name: John Doe
+      telephoneNumber: +1234567890
+      mail: john.doe@example.com
+      title: Software Engineer
+  - cn: CN=Alice.Smith,OU=HR,DC=example,DC=com
+    attrs:
+      name: Alice Smith
+      telephoneNumber: +9876543210
+      mail: alice.smith@example.com
+      department: Human Resources
+'</code></pre>
+    </div>
+
+    <h4>Clear Mocks</h4>
+    <p>To clear all currently loaded mocks:</p>
+
+    <div class="http-endpoint">
+        <pre><code>curl -X POST http://localhost:6006/clean</code></pre>
+    </div>
+
+    <h3>Mocks Format</h3>
+    <p>Mocks are provided in YAML format using the following structure:</p>
+
+    <div class="code-block">
+        <pre><code>users:
+  - cn: &lt;fully-qualified-distinguished-name&gt;
+    attrs:
+      &lt;attribute&gt;: &lt;value&gt;</code></pre>
+    </div>
+
+    <h4>Example</h4>
+    <div class="code-block">
+        <pre><code>users:
+  - cn: CN=Michael.Jones,OU=Engineering,DC=example,DC=com
+    attrs:
+      mail: michael.jones@example.com
+      telephoneNumber: "+1112223333"
+      department: Engineering
+  - cn: CN=Sarah.Williams,OU=Sales,DC=example,DC=com
+    attrs:
+      mail: sarah.williams@example.com
+      mobile: "+4445556666"
+      title: Sales Manager</code></pre>
+    </div>
+
+    <h3>Usage in Tests</h3>
+    <ol class="feature-list">
+        <li>Start <code>ldap-mock</code> (using Docker, for example).</li>
+        <li>Load mocks via the HTTP API before running your test.</li>
+        <li>Interact with <code>ldap-mock</code> as a regular LDAP server (default port: <code>389</code>).</li>
+        <li>Clear mocks via the HTTP API to reuse the setup in subsequent tests.</li>
+    </ol>
+
+    <h4>docker-compose.yml example</h4>
+    <p>You can use this docker-compose.yml example:</p>
+
+    <div class="code-block">
+        <pre><code>version: "3.9"
+services:
+  ldap-mock:
+    image: rom8726/ldap-mock:latest
+    ports:
+      - "389:389"     # Expose the LDAP server port
+      - "6006:6006"   # Expose the HTTP API port for managing mocks
+    environment:
+      LDAP_USERNAME: admin            # Set the username for LDAP binding
+      LDAP_PASSWORD: admin123         # Set the password for LDAP binding
+      LDAP_PORT: 389                  # Port for the LDAP server (optional, default is 389)
+      MOCK_PORT: 6006                 # Port for the mock HTTP server (optional, default is 6006)</code></pre>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>License</h2>
+    <p>This project is licensed under the MIT License. See the <a href="LICENSE">LICENSE</a> file for details.</p>
+
+    <div class="divider"></div>
+
+    <footer style="text-align: center; color: #666;">
+        <p>Happy testing with <code>ldap-mock</code>!</p>
+    </footer>
+</body>
+
+</html>
