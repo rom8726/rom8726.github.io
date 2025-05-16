@@ -17,3 +17,9 @@ Spec-first Golang project scaffold generator
 PostgreSQL test fixtures library and CLI
 
 [Project's page](https://rom8726.github.io/pgfixtures.html)
+
+## ansible-patroni
+
+Ansible playbook for deploying PostgreSQL Patroni cluster
+
+[Project's page](https://rom8726.github.io/ansible-patroni.html)

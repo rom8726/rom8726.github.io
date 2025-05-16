@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ansible-patroni - PostgreSQL Patroni Cluster Deployment</title>
+    <style>
+        :root {
+            --primary-color: #00ADD8;
+            --text-color: #333;
+            --bg-color: #fff;
+            --code-bg: #f6f8fa;
+            --warning-color: #ff6b6b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: var(--primary-color);
+            margin-top: 1.5em;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        pre code {
+            display: block;
+            padding: 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+
+        .warning {
+            background-color: #fff3f3;
+            border-left: 4px solid var(--warning-color);
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .warning strong {
+            color: var(--warning-color);
+        }
+
+        .component-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .component-list li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .component-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+
+        .config-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .config-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .service-command {
+            background: var(--code-bg);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ansible-patroni</h1>
+    <p>Github: <a href="https://github.com/rom8726/ansible-patroni">github.com/rom8726/ansible-patroni</a></p>
+    <p>Ansible playbook for deploying PostgreSQL Patroni cluster</p>
+
+    <div class="warning">
+        <strong>⚠️ WARNING:</strong> This configuration is for testing/development purposes only. DO NOT use in
+        production without proper security hardening!
+    </div>
+
+    <h2>Overview</h2>
+    <p>This Ansible playbook automates the deployment of a PostgreSQL high-availability cluster using Patroni and etcd.
+        The setup includes the following components for connection management and high availability:</p>
+    <ul class="component-list">
+        <li><code>Keepalived</code> creates a Virtual IP (VIP) for failover.</li>
+        <li><code>HAProxy</code> acts as a proxy layer for distributing requests.</li>
+        <li><code>PgBouncer</code> operates as a connection pooler.</li>
+    </ul>
+
+    <p>The connection path:</p>
+    <div class="service-command">
+        <code>Client -> Keepalived VIP -> HAProxy -> PgBouncer -> PostgreSQL</code>
+    </div>
+
+    <h2>Prerequisites</h2>
+    <ul class="component-list">
+        <li>Ubuntu/Debian-based system</li>
+        <li>Ansible installed on the control node</li>
+        <li>Network connectivity between all nodes</li>
+    </ul>
+
+    <h2>Components</h2>
+    <ul class="component-list">
+        <li>PostgreSQL 16</li>
+        <li>Patroni</li>
+        <li>etcd (for distributed configuration)</li>
+        <li>PgBouncer (for connection pooling)</li>
+        <li>Keepalived (for VIP)</li>
+        <li>HAProxy (for load balancing)</li>
+        <li>Python 3 and pip</li>
+        <li>Node Exporter (system metrics)</li>
+        <li>Postgres Exporter (PostgreSQL metrics)</li>
+    </ul>
+
+    <h2>Quick Start</h2>
+    <ol>
+        <li>Clone this repository.</li>
+        <li>Create config files with the command <code>make init</code>.</li>
+        <li>Update <code>inventory.ini</code> with your servers:</li>
+    </ol>
+    <div class="service-command">
+        <pre><code>[promoters]
+patroni1 ansible_host=192.168.64.2 node_id=1
+patroni2 ansible_host=192.168.64.3 node_id=2
+patroni3 ansible_host=192.168.64.4 node_id=3</code></pre>
+    </div>
+
+    <ol start="4">
+        <li>Update <code>ansible.cfg</code> with your user (root by default).</li>
+        <li>Set variable <code>cluster_vip_1</code> in group_vars (some VIP address for keepalived).</li>
+        <li>Set variable <code>keepalived_vip_interface</code> in keepalived default vars.</li>
+        <li>Run the playbook:</li>
+    </ol>
+    <div class="service-command">
+        <pre><code># Deploy Patroni cluster
+make up</code></pre>
+    </div>
+
+    <h2>Default Configuration</h2>
+
+    <h3>Network Ports</h3>
+    <div class="config-table">
+        <table>
+            <tr>
+                <td>PostgreSQL</td>
+                <td>5432</td>
+            </tr>
+            <tr>
+                <td>Patroni API</td>
+                <td>8008</td>
+            </tr>
+            <tr>
+                <td>etcd client</td>
+                <td>2379</td>
+            </tr>
+            <tr>
+                <td>etcd peer</td>
+                <td>2380</td>
+            </tr>
+            <tr>
+                <td>HAProxy PostgreSQL (master)</td>
+                <td>5000</td>
+            </tr>
+            <tr>
+                <td>HAProxy PostgreSQL (replica)</td>
+                <td>5001</td>
+            </tr>
+            <tr>
+                <td>HAProxy Statistics</td>
+                <td>7000</td>
+            </tr>
+            <tr>
+                <td>PgBouncer</td>
+                <td>6432</td>
+            </tr>
+            <tr>
+                <td>Node Exporter</td>
+                <td>9100</td>
+            </tr>
+            <tr>
+                <td>Postgres Exporter</td>
+                <td>9187</td>
+            </tr>
+        </table>
+    </div>
+
+    <h3>Keepalived Configuration</h3>
+    <ul class="component-list">
+        <li>VIP: Used for automatic failover between HAProxy instances.</li>
+        <li>Configured to determine the <code>MASTER</code> node based on its <code>node_id</code> in the cluster.</li>
+    </ul>
+
+    <h3>PgBouncer Configuration</h3>
+    <ul class="component-list">
+        <li>Connection pooling for PostgreSQL to reduce the overhead of establishing frequent connections.</li>
+        <li>Default port: <code>6432</code>.</li>
+        <li>Authentication method: Userlist file.</li>
+        <li>Configurations stored in <code>/etc/pgbouncer/pgbouncer.ini</code>.</li>
+    </ul>
+
+    <h3>PostgreSQL Settings</h3>
+    <ul class="component-list">
+        <li>Version: 16</li>
+        <li>Encoding: UTF8</li>
+        <li>Max Connections: 100</li>
+        <li>Shared Buffers: 256MB</li>
+        <li>WAL Level: replica</li>
+        <li>Shared Preload Libraries: pg_stat_statements, auto_explain</li>
+    </ul>
+
+    <h3>Authentication (Default)</h3>
+    <div class="warning">
+        <strong>⚠️ Change these values:</strong>
+        <ul class="component-list">
+            <li>PostgreSQL superuser: postgres/password</li>
+            <li>Replication user: replicator/password</li>
+        </ul>
+    </div>
+
+    <h2>Monitoring Components</h2>
+
+    <h3>Node Exporter</h3>
+    <ul class="component-list">
+        <li>Version: 1.9.1</li>
+        <li>Metrics Port: 9100</li>
+        <li>Systemd Service: node_exporter.service</li>
+        <li>User: node_exporter</li>
+    </ul>
+
+    <h3>Postgres Exporter</h3>
+    <ul class="component-list">
+        <li>Version: 0.17.1</li>
+        <li>Metrics Port: 9187</li>
+        <li>Systemd Service: postgres_exporter.service</li>
+        <li>User: postgres</li>
+        <li>Config Path: /etc/postgres_exporter/postgres_exporter.yaml</li>
+    </ul>
+
+    <h2>Service Management</h2>
+    <div class="service-command">
+        <pre><code># Patroni service
+systemctl status patroni
+systemctl start patroni
+systemctl stop patroni
+
+# etcd service
+systemctl status etcd
+systemctl start etcd
+systemctl stop etcd
+
+# HAProxy service
+systemctl status haproxy
+systemctl start haproxy
+systemctl stop haproxy
+
+# PgBouncer service
+systemctl status pgbouncer
+systemctl start pgbouncer
+systemctl stop pgbouncer
+
+# Keepalived service
+systemctl status keepalived
+systemctl start keepalived
+systemctl stop keepalived
+
+# Monitoring services
+systemctl status node_exporter
+systemctl status postgres_exporter</code></pre>
+    </div>
+
+    <h2>Monitoring</h2>
+    <h3>Available Metrics</h3>
+    <ul class="component-list">
+        <li>System metrics (via node_exporter): http://host:9100/metrics</li>
+        <li>PostgreSQL metrics (via postgres_exporter): http://host:9187/metrics</li>
+    </ul>
+
+    <h3>PostgreSQL Exporter Metrics</h3>
+    <p>Postgres Exporter provides the following metric groups:</p>
+
+    <h4>PostgreSQL Settings</h4>
+    <ul class="component-list">
+        <li>Monitors PostgreSQL configuration parameters</li>
+        <li>Collects values from all pg_settings entries</li>
+        <li>Includes parameter name, value, unit, and a short description</li>
+        <li>Exposed as GAUGE metrics</li>
+    </ul>
+
+    <h4>Replication Status</h4>
+    <ul class="component-list">
+        <li>Instance replication status monitoring:
+            <ul>
+                <li>Master/replica state detection</li>
+                <li>Master status monitoring (is_master metric)</li>
+                <li>Replica status monitoring (is_replica metric)</li>
+                <li>Replication lag monitoring in seconds (lag_seconds metric)</li>
+                <li>All metrics are exposed as a GAUGE type</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>Connection Statistics</h4>
+    <ul class="component-list">
+        <li>Detailed connection statistics:
+            <ul>
+                <li>Number of connections by state (active, idle, etc.)</li>
+                <li>Grouped by wait event types</li>
+                <li>Total connection count monitoring by different states</li>
+                <li>Exposed as GAUGE metrics with state and wait_event_type labels</li>
+            </ul>
+        </li>
+    </ul>
+
+    <footer style="margin-top: 50px; text-align: center; color: #666;">
+        <p>© 2025 rom8726</p>
+    </footer>
+</body>
+
+</html>
