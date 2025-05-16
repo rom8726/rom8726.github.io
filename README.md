@@ -23,3 +23,10 @@ PostgreSQL test fixtures library and CLI
 Ansible playbook for deploying PostgreSQL Patroni cluster
 
 [Project's page](https://rom8726.github.io/ansible-patroni.html)
+
+
+## pg_iban
+
+PostgreSQL extension providing IBAN data type and utility functions
+
+[Project's page](https://rom8726.github.io/pg_iban.html)

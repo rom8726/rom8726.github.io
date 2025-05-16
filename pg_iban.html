@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pg_iban - PostgreSQL IBAN Extension</title>
+    <style>
+        :root {
+            --primary-color: #00ADD8;
+            --text-color: #333;
+            --bg-color: #fff;
+            --code-bg: #f6f8fa;
+            --warning-color: #ff6b6b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: var(--primary-color);
+            margin-top: 1.5em;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        pre code {
+            display: block;
+            padding: 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+
+        .warning {
+            background-color: #fff3f3;
+            border-left: 4px solid var(--warning-color);
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .function-list {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .function-list h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .divider {
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+
+        .new-version {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>pg_iban</h1>
+    <p>Github: <a href="https://github.com/rom8726/pg_iban">github.com/rom8726/pg_iban</a></p>
+    <p><code>pg_iban</code> is a PostgreSQL extension providing an <code>IBAN</code> (International Bank Account Number)
+        data type and several utility functions for validation and manipulation of IBANs.</p>
+
+    <div class="warning">
+        <strong>⚠️ DISCLAIMER:</strong> This extension has not been tested in production. You use it at your own risk.
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Features</h2>
+    <ul class="feature-list">
+        <li><strong>Custom <code>iban</code> Data Type</strong>: A fully functional PostgreSQL data type for storing
+            IBANs.</li>
+        <li><strong>Validation</strong>: Functions to validate IBAN format and checksum.</li>
+        <li><strong>Comparison Operators</strong>: Custom operators for comparison (<code>=</code>, <code><</code>,
+            <code>></code>, etc.) fully integrated with PostgreSQL's indexing system.</li>
+        <li><strong>Index Support</strong>: B-tree and hash indexing for efficient querying.</li>
+    </ul>
+
+    <div class="new-version">
+        <h3>New in Version 1.1:</h3>
+        <ul class="feature-list">
+            <li>Functions for extracting country (<code>iban_country</code>) and BBAN (<code>iban_bban</code>) parts
+                from an IBAN.</li>
+            <li>Function to format IBANs into human-readable form (<code>iban_format</code>).</li>
+        </ul>
+    </div>
+
+    <h2>Installation</h2>
+    <ol>
+        <li>Clone the repository:
+            <div class="code-block">
+                <pre><code>git clone https://github.com/rom8726/pg_iban.git
+cd pg_iban</code></pre>
+            </div>
+        </li>
+        <li>Build and install the extension:
+            <div class="code-block">
+                <pre><code>make
+make install</code></pre>
+            </div>
+        </li>
+        <li>Add <code>pg_iban</code> to <code>shared_preload_libraries</code> in <code>postgresql.conf</code>:
+            <div class="code-block">
+                <pre><code>shared_preload_libraries = 'pg_iban'</code></pre>
+            </div>
+        </li>
+        <li>Load the extension into your database:
+            <div class="code-block">
+                <pre><code>CREATE EXTENSION pg_iban;</code></pre>
+            </div>
+        </li>
+    </ol>
+
+    <h2>Upgrading from Previous Versions</h2>
+    <p>If you are upgrading from version <code>1.0</code> to <code>1.1</code>, you can apply the update using:</p>
+    <div class="code-block">
+        <pre><code>ALTER EXTENSION pg_iban UPDATE TO '1.1';</code></pre>
+    </div>
+
+    <h2>Functions</h2>
+
+    <div class="function-list">
+        <h4>IBAN Validation</h4>
+        <ul class="feature-list">
+            <li><code>iban_valid(text) RETURNS bool</code>: Returns <code>TRUE</code> if the provided string is a valid
+                IBAN, <code>FALSE</code> otherwise.</li>
+        </ul>
+
+        <h4>New in Version 1.1</h4>
+        <ul class="feature-list">
+            <li><code>iban_country(iban) RETURNS text</code>: Extracts the country code from an IBAN.</li>
+            <li><code>iban_bban(iban) RETURNS text</code>: Extracts the BBAN (Basic Bank Account Number) from an IBAN.
+            </li>
+            <li><code>iban_format(iban) RETURNS text</code>: Formats an IBAN in a human-readable format.</li>
+        </ul>
+
+        <h4>Operators</h4>
+        <ul class="feature-list">
+            <li><code>=</code> (Equality)</li>
+            <li><code><</code>, <code><=</code>, <code>></code>, <code>>=</code> (Comparison)</li>
+            <li><code><></code> (Not Equal)</li>
+        </ul>
+
+        <h4>Indexing</h4>
+        <ul class="feature-list">
+            <li>B-tree and hash indexes are supported for the <code>iban</code> type.</li>
+        </ul>
+    </div>
+
+    <h2>Testing</h2>
+
+    <h3>Unit Tests</h3>
+    <p>Unit tests ensure that individual functions and behaviors of the extension are implemented correctly. The
+        extension uses <code>cmocka</code> for unit testing.</p>
+    <div class="code-block">
+        <pre><code>make docker-unit-test</code></pre>
+    </div>
+
+    <h3>Integration Tests</h3>
+    <p>Integration tests validate the extension in a live PostgreSQL environment, ensuring end-to-end correctness.</p>
+    <div class="code-block">
+        <pre><code>make docker-integration-test</code></pre>
+    </div>
+
+    <h2>Directory Structure</h2>
+    <ul class="feature-list">
+        <li><code>integration_tests/</code>: SQL scripts for integration testing.</li>
+        <li><code>test_pg_iban.c</code>: Unit test implementation.</li>
+        <li><code>Dockerfile</code>: Docker setup for the build unit-testing environment.</li>
+        <li><code>Dockerfile.integration</code>: Docker setup for the build integration testing environment.</li>
+    </ul>
+
+    <h2>Contribution</h2>
+    <p>This is an experimental extension. Contributions and improvements are welcome. Please fork the repository and
+        submit a pull request.</p>
+
+    <div class="divider"></div>
+
+    <footer style="text-align: center; color: #666;">
+        <p>This project is licensed under the <a href="LICENSE">Apache 2.0</a>.</p>
+    </footer>
+</body>
+
+</html>
