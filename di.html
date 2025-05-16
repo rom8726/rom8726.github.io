@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>di - Minimalistic DI Framework for Go</title>
+    <style>
+        :root {
+            --primary-color: #00ADD8;
+            --text-color: #333;
+            --bg-color: #fff;
+            --code-bg: #f6f8fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1em;
+        }
+
+        h2 {
+            margin-top: 2em;
+            color: var(--primary-color);
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        pre code {
+            display: block;
+            padding: 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        .features li.no:before {
+            content: "❌";
+        }
+
+        .install {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .example {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>di</h1>
+    <p>Minimalistic, reflection-based Dependency Injection (DI) framework for GoLang.</p>
+
+    <p>Inspired by <a href="https://github.com/ivankorobkov/go-di">https://github.com/ivankorobkov/go-di</a></p>
+
+    <h2>Features</h2>
+    <ul class="features">
+        <li>Constructor-based registration</li>
+        <li>Automatic dependency resolution via reflection</li>
+        <li>Support for interfaces (implementation matched automatically)</li>
+        <li>Manual argument injection for primitives or configs</li>
+        <li class="no">No lazy-loading of constructors — instances created when first resolved</li>
+    </ul>
+
+    <h2>Installation</h2>
+    <div class="install">
+        <code>go get github.com/rom8726/di</code>
+    </div>
+
+    <h2>Usage</h2>
+
+    <h3>1. Define your interfaces and implementations</h3>
+    <div class="example">
+        <pre><code>type DBClient interface {
+    Exec() (string, error)
+}
+
+type Repo interface {
+    Find() (string, error)
+}
+
+type RepoImpl struct {
+    db DBClient
+}
+
+func (r *RepoImpl) Find() (string, error) {
+    return r.db.Exec()
+}
+
+func NewRepo(db DBClient) *RepoImpl {
+    return &RepoImpl{db: db}
+}</code></pre>
+    </div>
+
+    <h3>2. Register constructors</h3>
+    <div class="example">
+        <pre><code>c := di.New()
+c.Provide(NewRepo)
+c.Provide(NewDBClient)</code></pre>
+    </div>
+
+    <h3>3. Resolve instances</h3>
+    <div class="example">
+        <pre><code>var repo Repo
+err := c.Resolve(&repo)
+if err != nil {
+    log.Fatal(err)
+}</code></pre>
+    </div>
+
+    <h3>4. Inject configuration</h3>
+    <div class="example">
+        <pre><code>params := &MyServiceParams{ParamInt: 42, ParamStr: "hello", ParamBool: true}
+c.Provide(NewMyService).Arg(params)
+
+// Or for primitives:
+c.Provide(NewMyService2).Args(123, true)</code></pre>
+    </div>
+
+    <h2>Design Principles</h2>
+    <ul>
+        <li><strong>Simplicity:</strong> No code generation, no additional interfaces to implement.</li>
+        <li><strong>Reflection:</strong> Uses reflect to resolve dependencies at runtime.</li>
+        <li><strong>Predictability:</strong> Always construct dependencies top-down, respecting constructor order.</li>
+        <li><strong>Safety:</strong> Panics on duplicate provider types.</li>
+    </ul>
+
+    <h2>Limitations</h2>
+    <ul>
+        <li>Only supports singleton resolution (no scoped or transient lifetimes).</li>
+        <li>No automatic scanning — you must explicitly register each constructor.</li>
+    </ul>
+
+    <h2>Testing</h2>
+    <p>The package includes tests that cover:</p>
+    <ul>
+        <li>Interface resolution</li>
+        <li>Manual parameter injection</li>
+        <li>Complex constructor trees</li>
+    </ul>
+    <div class="install">
+        <code>go test ./...</code>
+    </div>
+
+    <footer style="margin-top: 50px; text-align: center; color: #666;">
+        <p>Apache-2.0 License © rom8726</p>
+    </footer>
+</body>
+
+</html>
