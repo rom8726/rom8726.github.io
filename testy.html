@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>testy – tiny functional-testing framework</title>
+    <style>
+        :root {
+            --primary-color: #00ADD8;
+            --text-color: #333;
+            --bg-color: #fff;
+            --code-bg: #f6f8fa;
+            --border-color: #e1e4e8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: var(--primary-color);
+            margin-top: 1.5em;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: "Monaco", "Consolas", monospace;
+        }
+
+        pre code {
+            display: block;
+            padding: 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+
+        ul,
+        ol {
+            margin-left: 1.2em;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 16px;
+        }
+
+        .divider {
+            border-top: 1px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        .http-endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+    </style>
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+      (function (m, e, t, r, i, k, a) {
+        m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+        m[i].l = 1 * new Date();
+        for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+      })
+        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+      ym(102057297, "init", {
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true
+      });
+    </script>
+    <noscript>
+      <div><img src="https://mc.yandex.ru/watch/102057297" style="position:absolute; left:-9999px;" alt="" /></div>
+    </noscript>
+    <!-- /Yandex.Metrika counter -->
+</head>
+
+<body>
+    <h1>testy</h1>
+
+    <p>Github: <a href="https://github.com/rom8726/testy">github.com/rom8726/testy</a></p>
+
+    <p>A tiny functional-testing framework for HTTP handlers written in Go.<br />
+        It lets you describe end-to-end scenarios in YAML, automatically:</p>
+
+    <ul class="feature-list">
+        <li>runs the request against the given <code>http.Handler</code></li>
+        <li>asserts the HTTP response (status code + JSON body)</li>
+        <li>loads database fixtures before the scenario</li>
+        <li>executes SQL checks after each step</li>
+    </ul>
+
+    <p><strong>Only PostgreSQL is supported.</strong></p>
+
+    <div class="divider"></div>
+
+    <h2>Installation</h2>
+
+    <div class="code-block">
+        <pre><code>go get github.com/rom8726/testy@latest</code></pre>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Quick example</h2>
+
+    <h3>Directory layout:</h3>
+
+    <div class="code-block">
+        <pre><code>/project
+ ├─ api/                 # your application code
+ ├─ tests/
+ │   ├─ cases/           # *.yml files with scenarios
+ │   ├─ fixtures/        # *.yml fixtures for pgfixtures
+ └── api_test.go         # Go test that calls testy.Run</code></pre>
+    </div>
+
+    <h4>1. Multi-step YAML case (<code>tests/cases/user_flow.yml</code>)</h4>
+
+    <div class="code-block">
+        <pre><code>- name: end-to-end user flow
+  fixtures:
+    - users
+
+  steps:
+    - name: create_user
+      request:
+        method: POST
+        path:   /users
+        body:
+          name:  "Alice"
+          email: "alice@example.com"
+      response:
+        status: 201
+        json: |
+          {
+            "id":        "<<PRESENCE>>",
+            "name":      "Alice",
+            "email":     "alice@example.com"
+          }
+
+    - name: get user
+      request:
+        method: GET
+        path:   /users/{{create_user.response.id}}     # pulls "id" from the previous response
+      response:
+        status: 200
+        json: |
+          {
+            "id":   "{{create_user.response.id}}",
+            "name": "Alice"
+          }
+
+    - name: update email
+      request:
+        method: PATCH
+        path:   /users/{{create_user.response.id}}
+        headers:
+          X-Request-Id: "{{UUID}}"            # env-var substitution
+        body:
+          email: "alice+new@example.com"
+      response:
+        status: 204
+      dbChecks:
+        - query:  SELECT email FROM users WHERE id = {{create_user.response.id}}
+          result: '[{ "email":"alice+new@example.com" }]'</code></pre>
+    </div>
+
+    <p><strong>How the placeholders work:</strong></p>
+    <ul>
+        <li><code>{{&lt;step name&gt;.response.&lt;json path&gt;}}</code> — value from a previous response.<br />
+            The JSON path uses dots for objects and <code>[index]</code> for arrays (<code>items[0].id</code>).</li>
+        <li><code>{{ENV_VAR}}</code> — replaced with the value of an environment variable available at test run-time.
+        </li>
+    </ul>
+    <p>Placeholders are resolved in the request URL, headers and body, as well as inside
+        <code>dbChecks.query</code>.
+    </p>
+
+    <h4>2. Go test (<code>tests/api_test.go</code>)</h4>
+
+    <div class="code-block">
+        <pre><code>package project_test
+
+import (
+  "os"
+  "testing"
+
+  "project/api"
+  "github.com/rom8726/testy"
+)
+
+func TestAPI(t *testing.T) {
+  connStr := os.Getenv("TEST_DB") // postgres://user:password@localhost:5432/db?sslmode=disable
+
+  testy.Run(t, &testy.Config{
+    Handler:     api.Router(),    // your http.Handler
+    CasesDir:    "./cases",
+    FixturesDir: "./fixtures",
+    ConnStr:     connStr,
+  })
+}</code></pre>
+    </div>
+
+    <p><strong>Run the tests:</strong></p>
+
+    <div class="code-block">
+        <pre><code>go test ./...</code></pre>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Features</h2>
+
+    <h3>Declarative scenarios</h3>
+    <ul>
+        <li>Unlimited <strong>steps</strong> per scenario.</li>
+        <li>Each step can:
+            <ul>
+                <li>send any HTTP method, URL, headers and JSON body</li>
+                <li>reference values from previous responses (<code>{{&lt;step&gt;.response.&lt;field&gt;}}</code>)</li>
+                <li>inject environment variables (<code>{{HOME}}</code>, <code>{{UUID}}</code>, ...)</li>
+                <li>assert status code and JSON body (via
+                    <a href="https://github.com/kinbiko/jsonassert">kinbiko/jsonassert</a>)
+                </li>
+                <li>run one or more <strong>DB checks</strong> — SQL + expected JSON/YAML rows.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>PostgreSQL fixtures</h3>
+    <p>Loaded with <a href="https://github.com/rom8726/pgfixtures">rom8726/pgfixtures</a>:</p>
+    <ul>
+        <li>One YML file per table (or group of tables)</li>
+        <li>Auto-truncate and sequence reset before inserting</li>
+    </ul>
+
+    <h3>Hooks</h3>
+    <p>Optional pre/post request hooks to stub time, clean caches, etc.:</p>
+
+    <div class="code-block">
+        <pre><code>testy.Run(t, &testy.Config{
+    // ...
+    BeforeReq: func() error { /* do something */ return nil },
+    AfterReq:  func() error { /* do something */ return nil },
+})</code></pre>
+    </div>
+
+    <h3>Zero reflection magic</h3>
+    <p>The framework only needs:</p>
+    <ul>
+        <li>an <code>http.Handler</code></li>
+        <li>PostgreSQL connection string</li>
+        <li>paths to your YAML files</li>
+    </ul>
+
+    <div class="divider"></div>
+
+    <h2>YAML reference</h2>
+
+    <div class="code-block">
+        <pre><code>- name: string
+
+  fixtures:            # optional, order matters
+    - fixture-file     # without ".yml" extension
+
+  steps:
+    - name: string
+
+      request:
+        method:  GET | POST | PUT | PATCH | DELETE | ...
+        path:    string            # placeholders {{...}} allowed
+        headers:                   # optional
+          X-Token: "{{TOKEN}}"
+        body:                      # optional, any YAML\JSON
+          userId: "123"
+
+      response:
+        status: integer
+        json:   string             # optional, must be valid JSON
+
+      dbChecks:                    # optional, list
+        - query:  SQL string       # placeholders {{...}} allowed
+          result: JSON|YAML        # expected rows as JSON array</code></pre>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Why another testing tool?</h2>
+    <ul>
+        <li>Write tests in plain YAML — easy for both developers and QA.</li>
+        <li>Works with <em>any</em> <code>http.Handler</code> — net/http, Gin, Chi, Echo, ...</li>
+        <li>Context-aware templating (response + env) out of the box.</li>
+        <li>Uses proven libraries for JSON assertions and data fixtures.</li>
+    </ul>
+
+    <div class="divider"></div>
+
+    <h2>License</h2>
+    <p>Apache-2.0 License</p>
+
+</body>
+
+</html>

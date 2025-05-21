@@ -18,6 +18,12 @@ PostgreSQL test fixtures library and CLI
 
 [Project's page](https://rom8726.github.io/pgfixtures.html)
 
+## testy
+
+A tiny functional-testing framework for HTTP handlers written in Go.
+
+[Project's page](https://rom8726.github.io/testy.html)
+
 ## ldap-mock
 
 Testing tool for Go projects that allows you to mock LDAP server interactions (e.g., Active Directory).
