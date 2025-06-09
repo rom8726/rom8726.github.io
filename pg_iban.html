@@ -6,111 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <title>pg_iban - PostgreSQL IBAN Extension</title>
-    <style>
-        :root {
-            --primary-color: #00ADD8;
-            --text-color: #333;
-            --bg-color: #fff;
-            --code-bg: #f6f8fa;
-            --warning-color: #ff6b6b;
-        }
+    <link rel="stylesheet" href="styles.css">
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function (m, e, t, r, i, k, a) {
+            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+            m[i].l = 1 * new Date();
+            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+            k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+        })
+            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            background: var(--bg-color);
-        }
-
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: var(--primary-color);
-            margin-top: 1.5em;
-        }
-
-        code {
-            background: var(--code-bg);
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        pre code {
-            display: block;
-            padding: 16px;
-            overflow-x: auto;
-            line-height: 1.45;
-        }
-
-        .warning {
-            background-color: #fff3f3;
-            border-left: 4px solid var(--warning-color);
-            padding: 1em;
-            margin: 1em 0;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .feature-list {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .feature-list li {
-            margin: 8px 0;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .feature-list li:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: var(--primary-color);
-        }
-
-        .code-block {
-            background: var(--code-bg);
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-        }
-
-        .function-list {
-            background: var(--code-bg);
-            padding: 20px;
-            border-radius: 5px;
-            margin: 15px 0;
-        }
-
-        .function-list h4 {
-            margin-top: 0;
-            color: var(--primary-color);
-        }
-
-        .divider {
-            border-top: 1px solid #eee;
-            margin: 30px 0;
-        }
-
-        .new-version {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 1em;
-            margin: 1em 0;
-            border-radius: 0 4px 4px 0;
-        }
-    </style>
+        ym(101946943, "init", {
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true
+        });
+    </script>
+    <noscript>
+        <div><img src="https://mc.yandex.ru/watch/101946943" style="position:absolute; left:-9999px;" alt="" /></div>
+    </noscript>
+    <!-- /Yandex.Metrika counter -->
 </head>
 
 <body>
-    <h1>pg_iban</h1>
-    <p>Github: <a href="https://github.com/rom8726/pg_iban">github.com/rom8726/pg_iban</a></p>
-    <p><code>pg_iban</code> is a PostgreSQL extension providing an <code>IBAN</code> (International Bank Account Number)
+    <header>
+        <div class="container">
+            <a href="index.html"><h2 class="site-title">rom8726.github.io</h2></a>
+            <nav class="nav">
+                <a href="ansible-patroni.html" class="nav-item">Ansible-Patroni</a>
+                <a href="airo.html" class="nav-item">Airo</a>
+                <a href="di.html" class="nav-item">DI</a>
+                <a href="ldap_mock.html" class="nav-item">LDAP-Mock</a>
+                <a href="pg_iban.html" class="nav-item">PG-IBAN</a>
+                <a href="pgfixtures.html" class="nav-item">PG-Fixtures</a>
+                <a href="testy.html" class="nav-item">Testy</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>pg_iban</h1>
+        <p class="lead">A PostgreSQL extension providing an IBAN data type and utility functions</p>
+        <p>Github: <a href="https://github.com/rom8726/pg_iban">github.com/rom8726/pg_iban</a></p>
+        <p><code>pg_iban</code> is a PostgreSQL extension providing an <code>IBAN</code> (International Bank Account Number)
         data type and several utility functions for validation and manipulation of IBANs.</p>
 
     <div class="warning">
@@ -229,7 +168,9 @@ make install</code></pre>
 
     <div class="divider"></div>
 
-    <footer style="text-align: center; color: #666;">
+    </main>
+
+    <footer>
         <p>This project is licensed under the <a href="LICENSE">Apache 2.0</a>.</p>
     </footer>
 </body>
