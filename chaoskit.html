@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosKit - Chaos Engineering Framework for Go</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #e5e5e5;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #262626;
+            --code-bg: #1e1e1e;
+            --gradient-start: #3b82f6;
+            --gradient-end: #8b5cf6;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #e5e7eb;
+            --code-bg: #f9fafb;
+            --gradient-start: #3b82f6;
+            --gradient-end: #8b5cf6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(17, 17, 17, 0.95) 100%);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(248, 249, 250, 0.95) 100%);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 32px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+        }
+
+        .theme-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .glitter {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.8));
+            border-radius: 50%;
+            pointer-events: none;
+            animation: glitter-float 8s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+            z-index: 0;
+        }
+
+        [data-theme="light"] .glitter {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0.6));
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+
+        @keyframes glitter-float {
+
+            0%,
+            100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateY(-100px) translateX(50px) scale(1.5);
+                opacity: 0.8;
+            }
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end), #ec4899);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 5s ease infinite;
+            position: relative;
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .hero .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-logo {
+            margin: 40px 0;
+        }
+
+        .hero-logo img {
+            max-width: 500px;
+            height: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+        }
+
+        /* Section */
+        section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent), var(--gradient-end));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 6s ease infinite;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 48px;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end), var(--gradient-start));
+            background-size: 200% 100%;
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .feature-card:hover::before {
+            transform: translateX(100%);
+            animation: gradient-shift 2s linear infinite;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.2), 0 0 40px rgba(139, 92, 246, 0.1);
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
+
+        .code-block code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: #d4d4d4;
+            line-height: 1.6;
+            white-space: pre;
+            display: block;
+        }
+
+        [data-theme="light"] .code-block code {
+            color: #1f2937;
+        }
+
+        /* Two Column Layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: start;
+            margin-top: 48px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .column p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .column ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .column ul li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .column ul li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* Badges */
+        .badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 32px 0;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .badge:hover {
+            border-color: var(--accent);
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 24px 0;
+        }
+
+        .warning-box strong {
+            color: #f59e0b;
+        }
+
+        .warning-box p {
+            color: var(--text-secondary);
+            margin: 8px 0;
+        }
+
+        /* Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .comparison-table td {
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 48px 0;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+        }
+
+        .footer-section h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .footer-section a {
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 8px;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero .subtitle {
+                font-size: 18px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .theme-toggle {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .comparison-table {
+                font-size: 12px;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav class="container">
+            <a href="#" class="logo"></a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#methods">Injection Methods</a></li>
+                <li><a href="#components">Components</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="https://github.com/rom8726/chaoskit" target="_blank">GitHub</a></li>
+            </ul>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                <svg id="theme-icon-sun" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <!--            <div class="hero-logo">-->
+                <!--                <img src="docs/chaoskit_logo.png" alt="ChaosKit Logo">-->
+                <!--            </div>-->
+                <h1>ChaosKit</h1>
+                <p class="subtitle">
+                    A modular Go framework for chaos engineering, fault injection, and reliability testing of
+                    distributed systems, libraries, and services.
+                </p>
+                <div class="badges">
+                    <a href="https://goreportcard.com/report/github.com/rom8726/chaoskit" target="_blank"
+                        class="badge">Go Report Card</a>
+                    <a href="https://pkg.go.dev/github.com/rom8726/chaoskit" target="_blank" class="badge">Go
+                        Reference</a>
+                    <a href="https://coveralls.io/github/rom8726/chaoskit?branch=main" target="_blank"
+                        class="badge">Coverage</a>
+                </div>
+                <div class="cta-buttons">
+                    <a href="https://github.com/rom8726/chaoskit" class="btn btn-primary" target="_blank">GitHub</a>
+                    <a href="https://pkg.go.dev/github.com/rom8726/chaoskit" class="btn btn-secondary"
+                        target="_blank">Documentation</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview">
+            <div class="container">
+                <h2 class="section-title">Overview</h2>
+                <p class="section-subtitle">
+                    ChaosKit enables systematic testing of system reliability and resilience through controlled fault
+                    injection and invariant validation.
+                </p>
+
+                <div class="warning-box">
+                    <strong>Important:</strong>
+                    <p>ChaosKit is designed for <strong>proactive chaos engineering</strong> — it works best when
+                        integrated into your code from the start. Most injection methods require adding chaos hooks to
+                        your code (except ToxiProxy for network chaos).</p>
+                </div>
+
+                <div class="two-column" style="margin-top: 48px;">
+                    <div class="column">
+                        <h3>Philosophy</h3>
+                        <p>Build resilient systems by designing them to be testable with chaos from day one, rather than
+                            retrofitting chaos testing into existing code.</p>
+                    </div>
+                    <div class="column">
+                        <h3>When to Use</h3>
+                        <ul>
+                            <li>New libraries and frameworks</li>
+                            <li>Workflow engine testing</li>
+                            <li>Rollback mechanism validation</li>
+                            <li>Resource leak detection</li>
+                            <li>Network resilience testing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" style="background: var(--bg-secondary);">
+            <div class="container">
+                <h2 class="section-title">Key Capabilities</h2>
+                <p class="section-subtitle">
+                    Powerful tools for testing the reliability of your systems
+                </p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Controlled Chaos Injection</h3>
+                        <p>Introduce delays, panics, resource pressure, and network faults to test system resilience.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Multiple Injection Methods</h3>
+                        <p>Context-based, monkey patching, failpoints, and network proxies for various testing
+                            scenarios.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Invariant Validation</h3>
+                        <p>Verify system properties: bounded recursion, absence of infinite loops, resource leak
+                            prevention.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Continuous Testing</h3>
+                        <p>Run long-duration stress tests to discover edge cases and hidden issues.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Comprehensive Metrics</h3>
+                        <p>Automatic collection of execution statistics and performance data for analysis.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Flexible Configuration</h3>
+                        <p>Customize behavior through functional options pattern and builder pattern for convenient
+                            usage.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="methods">
+            <div class="container">
+                <h2 class="section-title">Injection Methods</h2>
+                <p class="section-subtitle">
+                    Choose the right method for your use case
+                </p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>1. Context-Based Injection (Recommended)</h3>
+                        <p><strong>Recommended for new code</strong></p>
+                        <p>Explicitly call chaos functions in your code. Fine-grained control, low overhead, works in
+                            production.</p>
+                        <p style="margin-top: 12px; color: var(--accent);">Requires code changes</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>2. Failpoint Injection (Recommended)</h3>
+                        <p><strong>Recommended for production</strong></p>
+                        <p>Compile-time injection points. Production-safe (compiles to no-op without tag).</p>
+                        <p style="margin-top: 12px; color: var(--accent);">Requires code changes</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>3. ToxiProxy (Recommended)</h3>
+                        <p><strong>Recommended for network chaos</strong></p>
+                        <p>Proxy network connections. Works without code changes, real network conditions.</p>
+                        <p style="margin-top: 12px; color: var(--accent);">No code changes</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>4. Monkey Patching</h3>
+                        <p><strong>Limited use cases</strong></p>
+                        <p>Runtime function replacement. Only works with package-level function variables.</p>
+                        <p style="margin-top: 12px; color: #f59e0b;">Requires -gcflags=all=-l</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 48px;">
+                    <h3 style="font-size: 24px; margin-bottom: 24px; text-align: center;">Comparison Table</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Code Changes</th>
+                                    <th>Works with Existing Code</th>
+                                    <th>Production-Safe</th>
+                                    <th>Performance</th>
+                                    <th>Recommendation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Context-Based</strong></td>
+                                    <td>Required</td>
+                                    <td>No</td>
+                                    <td>Yes</td>
+                                    <td>Excellent</td>
+                                    <td>New projects</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Failpoints</strong></td>
+                                    <td>Required</td>
+                                    <td>No</td>
+                                    <td>Yes (no-op)</td>
+                                    <td>Excellent</td>
+                                    <td>Production</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ToxiProxy</strong></td>
+                                    <td>None</td>
+                                    <td>Yes</td>
+                                    <td>Yes</td>
+                                    <td>Good</td>
+                                    <td>Network</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Monkey Patch</strong></td>
+                                    <td>Specific</td>
+                                    <td>Rarely</td>
+                                    <td>Never</td>
+                                    <td>Poor</td>
+                                    <td>Avoid</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="components" style="background: var(--bg-secondary);">
+            <div class="container">
+                <h2 class="section-title">Core Components</h2>
+                <p class="section-subtitle">
+                    Modular architecture for flexible testing
+                </p>
+
+                <div class="two-column">
+                    <div class="column">
+                        <h3>Chaos Injectors</h3>
+                        <ul>
+                            <li>DelayInjector - random delays</li>
+                            <li>PanicInjector - random panics</li>
+                            <li>CPUInjector - CPU stress</li>
+                            <li>MemoryInjector - memory pressure</li>
+                            <li>ToxiProxy Injectors - network chaos</li>
+                            <li>CompositeInjector - combine injectors</li>
+                        </ul>
+                    </div>
+                    <div class="column">
+                        <h3>Validators</h3>
+                        <ul>
+                            <li>PanicRecoveryValidator - recovery validation</li>
+                            <li>RecursionDepthValidator - recursion depth</li>
+                            <li>GoroutineLeakValidator - goroutine leaks</li>
+                            <li>SlowIterationValidator - slow iterations</li>
+                            <li>ExecutionTimeValidator - execution time</li>
+                            <li>MemoryLimitValidator - memory limits</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quickstart">
+            <div class="container">
+                <h2 class="section-title">Quick Start</h2>
+                <p class="section-subtitle">
+                    Get started with ChaosKit in minutes
+                </p>
+
+                <div class="code-block">
+                    <pre><code>package main
+
+import (
+    "context"
+    "log"
+    "time"
+
+    "github.com/rom8726/chaoskit"
+    "github.com/rom8726/chaoskit/injectors"
+    "github.com/rom8726/chaoskit/validators"
+)
+
+// Define your system under test
+type WorkflowEngine struct{}
+
+func (w *WorkflowEngine) Name() string { return "workflow-engine" }
+func (w *WorkflowEngine) Setup(ctx context.Context) error { return nil }
+func (w *WorkflowEngine) Teardown(ctx context.Context) error { return nil }
+
+// Define execution step with context-based chaos
+func ExecuteWorkflow(ctx context.Context, target chaoskit.Target) error {
+    // Inject chaos directly in your code
+    if chaoskit.MaybePanic(ctx) {
+        panic("chaos: intentional panic")
+    }
+    
+    chaoskit.MaybeDelay(ctx) // May add delay here
+    
+    // Your workflow execution logic
+    time.Sleep(10 * time.Millisecond)
+    return nil
+}
+
+func main() {
+    engine := &WorkflowEngine{}
+
+    scenario := chaoskit.NewScenario("reliability-test").
+        WithTarget(engine).
+        Step("execute-workflow", ExecuteWorkflow).
+        Inject("delay", injectors.RandomDelay(5*time.Millisecond, 25*time.Millisecond)).
+        Inject("panic", injectors.PanicProbability(0.01)).
+        Assert("goroutine-limit", validators.GoroutineLimit(200)).
+        Assert("recursion-depth", validators.RecursionDepthLimit(100)).
+        Assert("no-infinite-loop", validators.NoInfiniteLoop(5*time.Second)).
+        Repeat(100).
+        Build()
+
+    if err := chaoskit.Run(context.Background(), scenario); err != nil {
+        log.Fatalf("Scenario execution failed: %v", err)
+    }
+}</code></pre>
+                </div>
+
+                <div class="two-column" style="margin-top: 48px;">
+                    <div class="column">
+                        <h3>Installation</h3>
+                        <div class="code-block" style="margin-top: 16px;">
+                            <code>go get github.com/rom8726/chaoskit</code>
+                        </div>
+                        <p style="margin-top: 16px; color: var(--text-secondary);">
+                            Requires Go 1.25 or later.
+                        </p>
+                    </div>
+                    <div class="column">
+                        <h3>Examples</h3>
+                        <ul>
+                            <li>simple - basic reliability testing</li>
+                            <li>continuous - continuous testing</li>
+                            <li>chaos_context - context-based injection</li>
+                            <li>monkey_patch - monkey patching</li>
+                            <li>toxiproxy - network chaos</li>
+                            <li>floxy_stress_test - comprehensive stress test</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="usage-patterns" style="background: var(--bg-secondary);">
+            <div class="container">
+                <h2 class="section-title">Usage Patterns</h2>
+                <p class="section-subtitle">
+                    Different ways to use ChaosKit for reliability testing
+                </p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Basic Reliability Testing</h3>
+                        <div class="code-block" style="margin-top: 16px;">
+                            <pre><code>scenario := chaoskit.NewScenario("basic-test").
+    WithTarget(workflowEngine).
+    Step("execute", ExecuteWorkflow).
+    Assert("no-leaks", validators.GoroutineLimit(100)).
+    Repeat(1000).
+    Build()
+
+chaoskit.Run(ctx, scenario)</code></pre>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Continuous Testing</h3>
+                        <div class="code-block" style="margin-top: 16px;">
+                            <pre><code>scenario := chaoskit.NewScenario("continuous-test").
+    WithTarget(engine).
+    Step("execute", ExecuteWorkflow).
+    Inject("chaos", injectors.CompositeInjector(...)).
+    Assert("stability", validators.GoroutineLimit(500)).
+    RunFor(24*time.Hour).
+    Build()</code></pre>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Load Testing with Validation</h3>
+                        <div class="code-block" style="margin-top: 16px;">
+                            <pre><code>scenario := chaoskit.NewScenario("load-test").
+    WithTarget(engine).
+    Step("execute", ExecuteWorkflow).
+    Inject("cpu-stress", injectors.NewCPUInjector(4, 500*time.Millisecond)).
+    Assert("performance", validators.NewExecutionTimeValidator(100*time.Millisecond)).
+    Repeat(10000).
+    Build()</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>ChaosKit</h4>
+                    <a href="https://github.com/rom8726/chaoskit" target="_blank">Repository</a>
+                    <a href="https://pkg.go.dev/github.com/rom8726/chaoskit" target="_blank">Documentation</a>
+                    <a href="https://github.com/rom8726/chaoskit/issues" target="_blank">Issues</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <a href="https://github.com/rom8726/chaoskit" target="_blank">GitHub</a>
+                    <a href="https://pkg.go.dev/github.com/rom8726/chaoskit" target="_blank">Go Reference</a>
+                    <a href="https://goreportcard.com/report/github.com/rom8726/chaoskit" target="_blank">Go Report
+                        Card</a>
+                    <a href="https://coveralls.io/github/rom8726/chaoskit?branch=main" target="_blank">Coverage</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <a href="https://github.com/rom8726/chaoskit/blob/main/TUTORIAL.md" target="_blank">Tutorial</a>
+                    <a href="https://github.com/rom8726/chaoskit/blob/main/ARCHITECTURE.md" target="_blank">Architecture</a>
+                    <a href="https://github.com/rom8726/chaoskit/blob/main/README.md" target="_blank">README</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>ChaosKit - A modular Go framework for chaos engineering and reliability testing</p>
+                <p style="margin-top: 8px;">Apache-2.0 License</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIconSun = document.getElementById('theme-icon-sun');
+            const themeIconMoon = document.getElementById('theme-icon-moon');
+            const html = document.documentElement;
+
+            // Get theme from localStorage or default to dark
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+
+            // Apply theme on page load
+            function applyTheme(theme) {
+                html.setAttribute('data-theme', theme);
+                if (theme === 'light') {
+                    themeIconSun.style.display = 'block';
+                    themeIconMoon.style.display = 'none';
+                } else {
+                    themeIconSun.style.display = 'none';
+                    themeIconMoon.style.display = 'block';
+                }
+            }
+
+            // Initialize theme
+            applyTheme(currentTheme);
+
+            // Toggle theme on button click
+            themeToggle.addEventListener('click', function () {
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                applyTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        })();
+
+        // Glitter effect
+        (function () {
+            const hero = document.querySelector('.hero');
+            if (!hero) return;
+
+            function createGlitter() {
+                const glitter = document.createElement('div');
+                glitter.className = 'glitter';
+
+                const startX = Math.random() * 100;
+                const startY = 100 + Math.random() * 50;
+                const delay = Math.random() * 8;
+                const duration = 6 + Math.random() * 4;
+
+                glitter.style.left = startX + '%';
+                glitter.style.top = startY + '%';
+                glitter.style.animationDelay = delay + 's';
+                glitter.style.animationDuration = duration + 's';
+
+                hero.appendChild(glitter);
+
+                setTimeout(() => {
+                    glitter.remove();
+                }, (delay + duration) * 1000);
+            }
+
+            // Create glitters periodically
+            setInterval(createGlitter, 800);
+
+            // Create initial glitters
+            for (let i = 0; i < 5; i++) {
+                setTimeout(createGlitter, i * 200);
+            }
+        })();
+    </script>
+</body>
+
+</html>
